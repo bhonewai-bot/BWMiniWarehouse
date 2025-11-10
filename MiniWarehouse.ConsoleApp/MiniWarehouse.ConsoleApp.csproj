@@ -18,7 +18,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\MiniWarehouse.Database\MiniWarehouse.Database.csproj" />
-      <ProjectReference Include="..\MiniWarehouse.Domain\MiniWarehouse.Domain.csproj" />
     </ItemGroup>
 
 </Project>

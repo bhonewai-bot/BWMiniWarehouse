@@ -7,6 +7,8 @@ Console.WriteLine("Hello, World!");
 
 using var db = new AppDbContext();
 var itemEfCoreService = new ItemEFCoreService(db);
+var inventoryTransactionEfCoreService = new InventoryTransactionEFCoreService(db);
+var stockEfCoreService = new StockEFCoreService(db);
 
 while (true)
 {
@@ -33,8 +35,23 @@ while (true)
             string sku = Console.ReadLine()!;
             itemEfCoreService.AddItem(itemName, sku); 
             return;
-        // case "3": RecordTransaction(); break;
-        // case "4": ViewStocks(); break;
+        case "3":
+            Console.Write("Enter item id: ");
+            int itemId = Convert.ToInt32(Console.ReadLine()!);
+            Console.Write("Enter quantity: ");
+            int quantity = Convert.ToInt32(Console.ReadLine()!);
+            inventoryTransactionEfCoreService.StockIn(itemId, quantity);
+            return;
+        case "4":
+            Console.Write("Enter item id: ");
+            itemId = Convert.ToInt32(Console.ReadLine()!);
+            Console.Write("Enter quantity: ");
+            quantity = Convert.ToInt32(Console.ReadLine()!);
+            inventoryTransactionEfCoreService.StockOut(itemId, quantity);
+            return;
+        case "5":
+            stockEfCoreService.ViewStock();
+            return;
         case "0": 
             Console.WriteLine("Exiting...");
             return;
