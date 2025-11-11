@@ -37,7 +37,9 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Type)
-                .HasConversion<string>();
+                .HasConversion<string>()
+                .HasMaxLength(10)       
+                .IsRequired();
 
             entity.HasOne(d => d.Item).WithMany(p => p.TblInventoryTransactions)
                 .HasForeignKey(d => d.ItemId)

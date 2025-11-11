@@ -20,8 +20,6 @@ public class InventoryTransactionEFCoreService
             return;
         }
 
-        stock.Quantity += quantity;
-
         var inventoryTransaction = new TblInventoryTransaction()
         {
             ItemId = itemId,
@@ -29,6 +27,8 @@ public class InventoryTransactionEFCoreService
             Quantity = quantity,
         };
         _db.TblInventoryTransactions.Add(inventoryTransaction);
+        
+        stock.Quantity += quantity;
         
         int result = _db.SaveChanges();
         

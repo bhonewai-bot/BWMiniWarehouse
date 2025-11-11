@@ -53,7 +53,7 @@ public class ItemEFCoreService
         });
         int result = _db.SaveChanges();
         
-        string message = result > 0 ? "Saving successful." : "Saving failed.";
+        string message = result > 0 ? "Item added successfully." : "Item added failed.";
         Console.WriteLine(message);
     }
 }
