@@ -1,4 +1,5 @@
 using MiniWarehouse.Database.AppDbContextModels;
+using MiniWarehouse.Shared.Constants;
 
 namespace MiniWarehouse.ConsoleApp.EFCore;
 
@@ -6,9 +7,9 @@ public class InventoryTransactionEFCoreService
 {
     private readonly AppDbContext _db;
 
-    public InventoryTransactionEFCoreService(AppDbContext db)
+    public InventoryTransactionEFCoreService()
     {
-        _db = db;
+        _db = new AppDbContext();
     }
 
     public void StockIn(int itemId, int quantity)
@@ -16,23 +17,22 @@ public class InventoryTransactionEFCoreService
         var stock = _db.TblStocks.FirstOrDefault(x => x.ItemId == itemId);
         if (stock is null)
         {
-            Console.WriteLine("Data not found.");
+            Console.WriteLine(Message.Stock.NotFound);
             return;
         }
 
-        var inventoryTransaction = new TblInventoryTransaction()
+        _db.TblInventoryTransactions.Add(new TblInventoryTransaction
         {
             ItemId = itemId,
-            Type = EnumInventoryTransaction.In,
             Quantity = quantity,
-        };
-        _db.TblInventoryTransactions.Add(inventoryTransaction);
+            Type = EnumInventoryTransaction.In
+        });
         
         stock.Quantity += quantity;
         
         int result = _db.SaveChanges();
         
-        string message = result > 0 ? "Stock In Success." : "Stock In Failed.";
+        string message = result > 0 ? Message.Stock.StockInSuccess : Message.Stock.StockInFailed;
         Console.WriteLine(message);
     }
 
@@ -41,29 +41,28 @@ public class InventoryTransactionEFCoreService
         var stock = _db.TblStocks.FirstOrDefault(x => x.ItemId == itemId);
         if (stock is null)
         {
-            Console.WriteLine("Data not found.");
+            Console.WriteLine(Message.Stock.NotFound);
             return;
         }
 
-        if (stock.Quantity <= 0 || stock.Quantity < quantity)
+        if (stock.Quantity < quantity)
         {
-            Console.WriteLine("Not enough stock.");
+            Console.WriteLine(Message.Stock.InsufficientStock);
             return;
         }
         
         stock.Quantity -= quantity;
         
-        var inventoryTransaction = new TblInventoryTransaction()
+        _db.TblInventoryTransactions.Add(new TblInventoryTransaction
         {
             ItemId = itemId,
-            Type = EnumInventoryTransaction.Out,
             Quantity = quantity,
-        };
-        _db.TblInventoryTransactions.Add(inventoryTransaction);
+            Type = EnumInventoryTransaction.Out
+        });
         
         int result = _db.SaveChanges();
         
-        string message = result > 0 ? "Stock Out Success." : "Stock Out Failed.";
+        string message = result > 0 ? Message.Stock.StockOutSuccess : Message.Stock.StockOutFailed;
         Console.WriteLine(message);
     }
 }

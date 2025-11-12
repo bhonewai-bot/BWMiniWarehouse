@@ -8,6 +8,11 @@
 
     <ItemGroup>
       <ProjectReference Include="..\MiniWarehouse.Database\MiniWarehouse.Database.csproj" />
+      <ProjectReference Include="..\MiniWarehouse.Shared\MiniWarehouse.Shared.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Dapper" Version="2.1.66" />
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,8 @@
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using MiniWarehouse.Database.AppDbContextModels;
+using MiniWarehouse.Domain.Models;
+using MiniWarehouse.Shared.Constants;
 
 namespace MiniWarehouse.ConsoleApp.EFCore;
 
@@ -8,33 +10,29 @@ public class ItemEFCoreService
 {
     private readonly AppDbContext _db;
 
-    public ItemEFCoreService(AppDbContext db)
+    public ItemEFCoreService()
     {
-        _db = db;
+        _db = new AppDbContext();
     }
 
-    public void ViewItems()
+    public List<ItemModel> ViewItems()
     {
-        var lts = _db.TblItems
+        return _db.TblItems
             .AsNoTracking()
+            .Select(x => new ItemModel()
+            {
+                ItemId = x.ItemId,
+                Sku = x.Sku,
+                ItemName = x.ItemName
+            })
             .ToList();
-
-        if (lts.Count == 0)
-        {
-            Console.WriteLine("No data found");
-        }
-
-        foreach (var item in lts)
-        {
-            Console.WriteLine($"{item.ItemId}: {item.ItemName} (SKU: {item.Sku})");
-        }
     }
 
-    public void AddItem(string itemName, string sku)
+    public void AddItem(string sku, string itemName)
     {
         if (_db.TblItems.Any(x => x.Sku == sku))
         {
-            Console.WriteLine("Sku already exists");
+            Console.WriteLine(Message.Item.SkuAlreadyExists);
             return;
         }
 
@@ -43,6 +41,7 @@ public class ItemEFCoreService
             ItemName = itemName,
             Sku = sku
         };
+        
         _db.TblItems.Add(item);
         _db.SaveChanges();
         
@@ -51,9 +50,10 @@ public class ItemEFCoreService
             ItemId = item.ItemId,
             Quantity = 0
         });
+        
         int result = _db.SaveChanges();
         
-        string message = result > 0 ? "Item added successfully." : "Item added failed.";
+        string message = result > 0 ? Message.Item.AddedSuccessfully : Message.Item.AddFailed;
         Console.WriteLine(message);
     }
 }

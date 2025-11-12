@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniWarehouse.Database", "M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniWarehouse.Domain", "MiniWarehouse.Domain\MiniWarehouse.Domain.csproj", "{DE03BC2E-305B-44A4-9BB0-A0D695DB122B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniWarehouse.Shared", "MiniWarehouse.Shared\MiniWarehouse.Shared.csproj", "{4E3ABACF-793D-4AD3-8FC8-1E16914BAB79}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{DE03BC2E-305B-44A4-9BB0-A0D695DB122B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE03BC2E-305B-44A4-9BB0-A0D695DB122B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE03BC2E-305B-44A4-9BB0-A0D695DB122B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E3ABACF-793D-4AD3-8FC8-1E16914BAB79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E3ABACF-793D-4AD3-8FC8-1E16914BAB79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E3ABACF-793D-4AD3-8FC8-1E16914BAB79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E3ABACF-793D-4AD3-8FC8-1E16914BAB79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

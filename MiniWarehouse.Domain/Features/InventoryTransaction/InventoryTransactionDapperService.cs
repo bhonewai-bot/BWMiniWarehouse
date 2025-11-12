@@ -1,77 +1,88 @@
 using System.Data;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using MiniWarehouse.Database;
 using MiniWarehouse.Database.AppDbContextModels;
 using MiniWarehouse.Domain.Models;
+using MiniWarehouse.Shared.Constants;
 
 namespace MiniWarehouse.ConsoleApp.Dapper;
 
 public class InventoryTransactionDapperService
 {
-    private readonly SqlConnectionStringBuilder _sqlConnectionStringBuilder = new SqlConnectionStringBuilder()
+    private readonly string _connectionString;
+
+    public InventoryTransactionDapperService()
     {
-        DataSource = ".",
-        InitialCatalog = "MiniWarehouse",
-        UserID = "sa",
-        Password = "sasa@123",
-        TrustServerCertificate = true
-    };
+        _connectionString = AppSettings.ConnectionString;
+    }
 
     public void StockIn(int itemId, int quantity)
     {
-        using (IDbConnection db = new SqlConnection(_sqlConnectionStringBuilder.ConnectionString))
+        using (IDbConnection db = new SqlConnection(_connectionString))
         {
-            string query = "SELECT * FROM Tbl_Stocks WHERE ItemId = @ItemId";
-            var stock = db.QueryFirstOrDefault<StockModel>(query, new { ItemId = itemId });
+            db.Open();
             
+            // // Get current stock
+            string query = "SELECT * FROM Tbl_Stocks WHERE ItemId = @ItemId";
+            
+            var stock = db.QueryFirstOrDefault<StockModel>(query, new { ItemId = itemId });
             if (stock is null)
             {
-                Console.WriteLine("Stock not found.");
+                Console.WriteLine(Message.Stock.NotFound);
                 return;
             }
             
-            string insertQuery = @"
+            // Insert transaction
+            string query2 = @"
                 INSERT INTO Tbl_InventoryTransactions (ItemId, Quantity, Type) 
                 VALUES (@ItemId, @Quantity, @Type)";
 
-            db.Execute(insertQuery, new InventoryTransactionModel()
+            db.Execute(query2, new InventoryTransactionModel()
             {
                 ItemId = itemId,
                 Type = EnumInventoryTransaction.In.ToString(),
                 Quantity = quantity
             });
 
-            string updateQuery = @"UPDATE Tbl_Stocks SET Quantity = Quantity + @Quantity WHERE ItemId = @ItemId";
-            int result = db.Execute(updateQuery, new StockModel()
+            // Increase stock quantity
+            string query3 = @"
+                UPDATE Tbl_Stocks SET Quantity = Quantity + @Quantity 
+                WHERE ItemId = @ItemId";
+            int result = db.Execute(query3, new StockModel()
             {
                 ItemId = itemId,
                 Quantity = quantity,
             });
             
-            string message = result > 0 ? "Stock In Success." : "Stock In Failed.";
+            string message = result > 0 ? Message.Stock.StockInSuccess : Message.Stock.StockInFailed;
             Console.WriteLine(message);
         }
     }
 
     public void StockOut(int itemId, int quantity)
     {
-        using (IDbConnection db = new SqlConnection(_sqlConnectionStringBuilder.ConnectionString))
+        using (IDbConnection db = new SqlConnection(_connectionString))
         {
-            string query = "SELECT * FROM Tbl_Stocks WHERE ItemId = @ItemId";
-            var stock = db.QueryFirst<StockModel>(query, new { ItemId = itemId });
+            db.Open();
             
+            // Get current stock
+            string query = "SELECT * FROM Tbl_Stocks WHERE ItemId = @ItemId";
+            
+            var stock = db.QueryFirst<StockModel>(query, new { ItemId = itemId });
             if (stock is null)
             {
-                Console.WriteLine("Stock not found.");
+                Console.WriteLine(Message.Stock.NotFound);
                 return;
             }
             
-            if (stock.Quantity <= 0 || stock.Quantity < quantity)
+            if (stock.Quantity < quantity)
             {
-                Console.WriteLine("Not enough stock.");
+                Console.WriteLine(Message.Stock.InsufficientStock);
                 return;
             }
 
+            // Insert transaction
             string insertQuery = @"
                 INSERT INTO Tbl_InventoryTransactions (ItemId, Type, Quantity)
                 VALUES (@ItemId, @Type, @Quantity)";
@@ -83,6 +94,7 @@ public class InventoryTransactionDapperService
                 Quantity = quantity
             });
 
+            // Decrease stock quantity
             string updateQuery = @"
                 UPDATE Tbl_Stocks SET Quantity = Quantity - @Quantity
                 WHERE ItemId = @ItemId";
@@ -93,7 +105,7 @@ public class InventoryTransactionDapperService
                 Quantity = quantity,
             });
             
-            string message = result > 0 ? "Stock Out Success." : "Stock Out Failed.";
+            string message = result > 0 ? Message.Stock.StockOutSuccess : Message.Stock.StockOutFailed;
             Console.WriteLine(message);
         }
     }
