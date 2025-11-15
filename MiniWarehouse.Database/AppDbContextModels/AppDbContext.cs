@@ -20,6 +20,10 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<TblItem> TblItems { get; set; }
 
     public virtual DbSet<TblStock> TblStocks { get; set; }
+    
+    public virtual DbSet<TblSupplier> TblSuppliers { get; set; }
+    
+    public virtual DbSet<TblCustomer> TblCustomers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -50,6 +54,14 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.ItemId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Tbl_Inven__ItemI__3D5E1FD2");
+
+            entity.HasOne(d => d.Supplier).WithMany(p => p.TblInventoryTransactions)
+                .HasForeignKey(d => d.SupplierId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.Customer).WithMany(p => p.TblInventoryTransactions)
+                .HasForeignKey(d => d.CustomerId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<TblItem>(entity =>
@@ -84,6 +96,28 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK__Tbl_Stock__ItemI__412EB0B6");
         });
 
+        modelBuilder.Entity<TblSupplier>(entity =>
+        {
+            entity.HasKey(e => e.SupplierId);
+
+            entity.ToTable("Tbl_Suppliers");
+
+            entity.Property(e => e.SupplierName)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<TblCustomer>(entity =>
+        {
+            entity.HasKey(e => e.CustomerId);
+            
+            entity.ToTable("Tbl_Customers");
+
+            entity.Property(e => e.CustomerName)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+        });
+            
         OnModelCreatingPartial(modelBuilder);
     }
 

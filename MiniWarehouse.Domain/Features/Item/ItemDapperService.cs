@@ -23,7 +23,7 @@ public class ItemDapperService
         {
             db.Open();
 
-            string query = @"SELECT ItemId, SKU, ItemName FROM Tbl_Items";
+            string query = "SELECT ItemId, SKU, ItemName FROM Tbl_Items";
 
             return db.Query<ItemModel>(query).ToList();
         }

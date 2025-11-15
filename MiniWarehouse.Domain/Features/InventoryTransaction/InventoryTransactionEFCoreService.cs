@@ -12,7 +12,7 @@ public class InventoryTransactionEFCoreService
         _db = new AppDbContext();
     }
 
-    public void StockIn(int itemId, int quantity)
+    public void StockIn(int itemId, int quantity, int supplierId)
     {
         var stock = _db.TblStocks.FirstOrDefault(x => x.ItemId == itemId);
         if (stock is null)
@@ -20,12 +20,20 @@ public class InventoryTransactionEFCoreService
             Console.WriteLine(Message.Stock.NotFound);
             return;
         }
+        
+        var supplier = _db.TblSuppliers.FirstOrDefault(x => x.SupplierId == supplierId);
+        if (supplier is null)
+        {
+            Console.WriteLine(Message.Supplier.NotFound);
+            return;
+        }
 
         _db.TblInventoryTransactions.Add(new TblInventoryTransaction
         {
             ItemId = itemId,
             Quantity = quantity,
-            Type = EnumInventoryTransaction.In
+            Type = EnumInventoryTransaction.In,
+            SupplierId = supplierId
         });
         
         stock.Quantity += quantity;
@@ -36,7 +44,7 @@ public class InventoryTransactionEFCoreService
         Console.WriteLine(message);
     }
 
-    public void StockOut(int itemId, int quantity)
+    public void StockOut(int itemId, int quantity, int customerId)
     {
         var stock = _db.TblStocks.FirstOrDefault(x => x.ItemId == itemId);
         if (stock is null)
@@ -44,6 +52,14 @@ public class InventoryTransactionEFCoreService
             Console.WriteLine(Message.Stock.NotFound);
             return;
         }
+        
+        var customer = _db.TblCustomers.FirstOrDefault(x => x.CustomerId == customerId);
+        if (customer is null)
+        {
+            Console.WriteLine(Message.Customer.NotFound);
+            return;
+        }
+            
 
         if (stock.Quantity < quantity)
         {
@@ -57,7 +73,8 @@ public class InventoryTransactionEFCoreService
         {
             ItemId = itemId,
             Quantity = quantity,
-            Type = EnumInventoryTransaction.Out
+            Type = EnumInventoryTransaction.Out,
+            CustomerId = customerId
         });
         
         int result = _db.SaveChanges();

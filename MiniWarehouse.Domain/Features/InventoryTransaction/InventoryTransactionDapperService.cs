@@ -1,4 +1,5 @@
 using System.Data;
+using System.Net.WebSockets;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using MiniWarehouse.Database;
@@ -17,13 +18,13 @@ public class InventoryTransactionDapperService
         _connectionString = AppSettings.ConnectionString;
     }
 
-    public void StockIn(int itemId, int quantity)
+    public void StockIn(int itemId, int quantity, int supplierId)
     {
         using (IDbConnection db = new SqlConnection(_connectionString))
         {
             db.Open();
             
-            // // Get current stock
+            // Get current stock
             string query = "SELECT * FROM Tbl_Stocks WHERE ItemId = @ItemId";
             
             var stock = db.QueryFirstOrDefault<StockModel>(query, new { ItemId = itemId });
@@ -33,16 +34,27 @@ public class InventoryTransactionDapperService
                 return;
             }
             
+            // Get supplier
+            string query4 = @"SELECT SupplierId, SupplierName FROM Tbl_Suppliers WHERE SupplierId = @SupplierId";
+            
+            var supplier = db.QueryFirstOrDefault<SupplierModel>(query4, new { SupplierId = supplierId });
+            if (supplier is null)
+            {
+                Console.WriteLine(Message.Supplier.NotFound);
+                return;
+            }
+            
             // Insert transaction
             string query2 = @"
-                INSERT INTO Tbl_InventoryTransactions (ItemId, Quantity, Type) 
-                VALUES (@ItemId, @Quantity, @Type)";
+                INSERT INTO Tbl_InventoryTransactions (ItemId, Quantity, Type, SupplierId) 
+                VALUES (@ItemId, @Quantity, @Type, @SupplierId)";
 
             db.Execute(query2, new InventoryTransactionModel()
             {
                 ItemId = itemId,
                 Type = EnumInventoryTransaction.In.ToString(),
-                Quantity = quantity
+                Quantity = quantity,
+                SupplierId = supplierId
             });
 
             // Increase stock quantity
@@ -60,7 +72,7 @@ public class InventoryTransactionDapperService
         }
     }
 
-    public void StockOut(int itemId, int quantity)
+    public void StockOut(int itemId, int quantity, int customerId)
     {
         using (IDbConnection db = new SqlConnection(_connectionString))
         {
@@ -81,17 +93,27 @@ public class InventoryTransactionDapperService
                 Console.WriteLine(Message.Stock.InsufficientStock);
                 return;
             }
+            
+            // Get customer
+            string query4 = @"SELECT * FROM Tbl_Customers WHERE CustomerId = @CustomerId";
+            var customer = db.QueryFirstOrDefault<CustomerModel>(query4, new { CustomerId = customerId });
+            if (customer is null)
+            {
+                Console.WriteLine(Message.Customer.NotFound);
+                return;
+            }
 
             // Insert transaction
             string insertQuery = @"
-                INSERT INTO Tbl_InventoryTransactions (ItemId, Type, Quantity)
-                VALUES (@ItemId, @Type, @Quantity)";
+                INSERT INTO Tbl_InventoryTransactions (ItemId, Type, Quantity, CustomerId)
+                VALUES (@ItemId, @Type, @Quantity, @CustomerId)";
 
             db.Execute(insertQuery, new InventoryTransactionModel()
             {
                 ItemId = itemId,
                 Type = EnumInventoryTransaction.Out.ToString(),
-                Quantity = quantity
+                Quantity = quantity,
+                CustomerId = customerId
             });
 
             // Decrease stock quantity

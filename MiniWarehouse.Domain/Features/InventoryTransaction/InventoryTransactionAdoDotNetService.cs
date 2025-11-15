@@ -14,7 +14,7 @@ public class InventoryTransactionAdoDotNetService
         _connectionString = AppSettings.ConnectionString;
     }
 
-    public void StockIn(int itemId, int quantity)
+    public void StockIn(int itemId, int quantity, int supplierId)
     {
         using var connection = new SqlConnection(_connectionString);
         connection.Open();
@@ -39,15 +39,29 @@ public class InventoryTransactionAdoDotNetService
             return;
         }
         
+        // Get supplier
+        string query4 = @"SELECT SupplierId, SupplierName FROM Tbl_Suppliers WHERE SupplierId = @SupplierId";
+        
+        SqlCommand cmd4 = new SqlCommand(query4, connection);
+        cmd4.Parameters.AddWithValue("@SupplierId", supplierId);
+        
+        var supplier = cmd4.ExecuteScalar();
+        if (supplier is null)
+        {
+            Console.WriteLine(Message.Supplier.NotFound);
+            return;
+        }
+        
         // Insert transaction
         string query2 = @"
-            INSERT INTO Tbl_InventoryTransactions (ItemId, Quantity, Type)
-            VALUES (@ItemId, @Quantity, @Type)";
+            INSERT INTO Tbl_InventoryTransactions (ItemId, Quantity, Type, SupplierId)
+            VALUES (@ItemId, @Quantity, @Type, @SupplierId)";
         
         SqlCommand cmd2 = new SqlCommand(query2, connection);
         cmd2.Parameters.AddWithValue("@ItemId", itemId);
         cmd2.Parameters.AddWithValue("@Quantity", quantity);
         cmd2.Parameters.AddWithValue("@Type", EnumInventoryTransaction.In.ToString());
+        cmd2.Parameters.AddWithValue("@SupplierId", supplierId);
         
         cmd2.ExecuteNonQuery();
         
@@ -66,7 +80,7 @@ public class InventoryTransactionAdoDotNetService
         Console.WriteLine(message);
     }
 
-    public void StockOut(int itemId, int quantity)
+    public void StockOut(int itemId, int quantity, int customerId)
     {
         using var connection = new SqlConnection(_connectionString);
         connection.Open();
@@ -97,15 +111,27 @@ public class InventoryTransactionAdoDotNetService
             return;
         }
         
+        // Get customer
+        string query4 = @"SELECT * FROM Tbl_Customers WHERE CustomerId = @CustomerId";
+        SqlCommand cmd4 = new SqlCommand(query4, connection);
+        cmd4.Parameters.AddWithValue("@CustomerId", customerId);
+        
+        var customer = cmd4.ExecuteScalar();
+        if (customer is null)
+        {
+            Console.WriteLine(Message.Customer.NotFound);
+        }
+        
         // Insert transaction
         string query2 = @"
-            INSERT INTO Tbl_InventoryTransactions (ItemId, Type, Quantity)
-            VALUES (@ItemId, @Type, @Quantity)";
+            INSERT INTO Tbl_InventoryTransactions (ItemId, Type, Quantity, CustomerId)
+            VALUES (@ItemId, @Type, @Quantity, @CustomerId)";
         
         SqlCommand cmd2 = new SqlCommand(query2, connection);
         cmd2.Parameters.AddWithValue("@ItemId", itemId);
         cmd2.Parameters.AddWithValue("@Type", EnumInventoryTransaction.Out.ToString());
         cmd2.Parameters.AddWithValue("@Quantity", quantity);
+        cmd2.Parameters.AddWithValue("@CustomerId", customerId);
         
         cmd2.ExecuteNonQuery();
         

@@ -11,5 +11,7 @@ public partial class TblStock
 
     public int Quantity { get; set; }
 
+    public int ReorderLevel { get; set; }
+
     public virtual TblItem Item { get; set; } = null!;
 }
